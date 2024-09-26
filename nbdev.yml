@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "gaspard"
+  site-url: "https://AnswerDotAI.github.io/gaspard"
+  description: "Helper for Gemini API"
+  repo-branch: main
+  repo-url: "https://github.com/AnswerDotAI/gaspard"
