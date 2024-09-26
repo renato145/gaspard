@@ -2,36 +2,31 @@
 
 # %% auto 0
 __all__ = ['UsageMetadata', 'empty', 'models', 'find_block', 'contents', 'usage', 'Client', 'get_stream', 'call_func',
-           'mk_toolres', 'mk_tool_choice', 'Chat', 'text_msg', 'mk_msg', 'media_msg']
+           'mk_toolres', 'mk_tool_choice', 'Chat', 'media_msg', 'text_msg', 'mk_msg']
 
-# %% ../00_core.ipynb 3
-import os
-import time
+# %% ../00_core.ipynb
+import inspect, typing, mimetypes, base64, json, ast, os, time
 import google.generativeai as genai
 from google.generativeai.types.generation_types import GenerateContentResponse, GenerationConfig
 from google.generativeai.protos import FunctionCall, Content, FunctionResponse
 from google.generativeai.protos import GenerateContentResponse as GCR
-UsageMetadata = GCR.UsageMetadata
 
 import toolslm
 from toolslm.funccall import *
 
-from fastcore import imghdr
 from fastcore.meta import delegates
 from fastcore.utils import *
 
-import inspect, typing, mimetypes, base64, json, ast
 from collections import abc
-try: from IPython import display
-except: display=None
 
-# %% ../00_core.ipynb 5
+# %% ../00_core.ipynb
+UsageMetadata = GCR.UsageMetadata
 empty = inspect.Parameter.empty
 
-# %% ../00_core.ipynb 6
+# %% ../00_core.ipynb
 models = 'gemini-1.5-pro-exp-0827', 'gemini-1.5-flash-exp-0827','gemini-1.5-pro','gemini-1.5-flash'
 
-# %% ../00_core.ipynb 16
+# %% ../00_core.ipynb
 def find_block(r:abc.Mapping, # The message to look in
               ):
     "Find the content in `r`."
@@ -40,7 +35,7 @@ def find_block(r:abc.Mapping, # The message to look in
     if hasattr(m, 'content'): return m.content 
     else: return m
 
-# %% ../00_core.ipynb 18
+# %% ../00_core.ipynb
 def contents(r):
     "Helper to get the contents from response `r`."
     blk = find_block(r)
@@ -48,7 +43,7 @@ def contents(r):
     if hasattr(blk, 'parts'): return getattr(blk,'parts')[0].text
     return blk
 
-# %% ../00_core.ipynb 20
+# %% ../00_core.ipynb
 @patch()
 def _repr_markdown_(self:GenerateContentResponse):
     met = list(self.to_dict()['candidates'][0].items()) + list(self.to_dict()['usage_metadata'].items())
@@ -63,29 +58,28 @@ def _repr_markdown_(self:GenerateContentResponse):
 
 </details>"""
 
-
-# %% ../00_core.ipynb 23
+# %% ../00_core.ipynb
 def usage(inp=0, # Number of input tokens
           out=0  # Number of output tokens
          ):
     "Slightly more concise version of `Usage`."
     return UsageMetadata(prompt_token_count=inp, candidates_token_count=out)
 
-# %% ../00_core.ipynb 25
+# %% ../00_core.ipynb
 @patch(as_prop=True)
 def total(self:UsageMetadata): return self.prompt_token_count+self.candidates_token_count
 
-# %% ../00_core.ipynb 26
+# %% ../00_core.ipynb
 @patch
 def __repr__(self:UsageMetadata): return f'In: {self.prompt_token_count}; Out: {self.candidates_token_count}; Total: {self.total}'
 
-# %% ../00_core.ipynb 28
+# %% ../00_core.ipynb
 @patch
 def __add__(self:UsageMetadata, b):
     "Add together each of `input_tokens` and `output_tokens`"
     return usage(self.prompt_token_count+b.prompt_token_count, self.candidates_token_count+b.candidates_token_count)
 
-# %% ../00_core.ipynb 37
+# %% ../00_core.ipynb
 class Client:
     def __init__(self, model, cli=None, sp=None):
         "Basic LLM messages client."
@@ -93,7 +87,7 @@ class Client:
         self.sp = sp
         self.c = (cli or genai.GenerativeModel(model, system_instruction=sp))
 
-# %% ../00_core.ipynb 39
+# %% ../00_core.ipynb
 @patch
 def _r(self:Client, r:GenerateContentResponse):
     "Store the result of the message and accrue total usage."
@@ -101,20 +95,20 @@ def _r(self:Client, r:GenerateContentResponse):
     if getattr(r,'usage_metadata',None): self.use += r.usage_metadata
     return r
 
-# %% ../00_core.ipynb 41
+# %% ../00_core.ipynb
 def get_stream(r):
     for o in r:
         o = contents(o)
         if o and isinstance(o, str): yield(o)
 
-# %% ../00_core.ipynb 42
+# %% ../00_core.ipynb
 @patch
 def _set_sp(self:Client, sp:str):
     if sp != self.sp:
         self.sp = sp
         self.c = genai.GenerativeModel(model, system_instruction=self.sp)
 
-# %% ../00_core.ipynb 44
+# %% ../00_core.ipynb
 @patch
 @delegates(genai.GenerativeModel.generate_content)
 def __call__(self:Client,
@@ -135,12 +129,12 @@ def __call__(self:Client,
     if not stream: return self._r(r)
     else: return get_stream(map(self._r, r))
 
-# %% ../00_core.ipynb 61
+# %% ../00_core.ipynb
 def _mk_ns(*funcs:list[callable]) -> dict[str,callable]:
     "Create a `dict` of name to function in `funcs`, to use as a namespace"
     return {f.__name__:f for f in funcs}
 
-# %% ../00_core.ipynb 62
+# %% ../00_core.ipynb
 def call_func(fc:FunctionCall, # FunctionCall block from the response
               ns:Optional[abc.Mapping]=None, # Namespace to search for tools, defaults to `globals()`
               obj:Optional=None # Object to search for tools
@@ -152,7 +146,7 @@ def call_func(fc:FunctionCall, # FunctionCall block from the response
     if not func: func = ns[fc.name]
     return func(**(fc.args))
 
-# %% ../00_core.ipynb 64
+# %% ../00_core.ipynb
 def mk_toolres(
     r:abc.Mapping, # Tool use request response
     ns:Optional[abc.Mapping]=None, # Namespace to search for tools
@@ -170,11 +164,11 @@ def mk_toolres(
     if tc_res: res.append(mk_msg(tc_res, 'function'))
     return res
 
-# %% ../00_core.ipynb 69
+# %% ../00_core.ipynb
 def mk_tool_choice(choose: list)->dict:
     return {"function_calling_config": {"mode": "ANY", "allowed_function_names": [x.__name__ for x in choose]}}
 
-# %% ../00_core.ipynb 75
+# %% ../00_core.ipynb
 class Chat:
     def __init__(self,
                  model:Optional[str]=None, # Model to use (leave empty if passing `cli`)
@@ -190,13 +184,13 @@ class Chat:
     @property
     def use(self): return self.c.use
 
-# %% ../00_core.ipynb 77
+# %% ../00_core.ipynb
 @patch
 def _stream(self:Chat, res):
     yield from res
     self.h += mk_toolres(self.c.result, ns=self.tools, obj=self)
 
-# %% ../00_core.ipynb 78
+# %% ../00_core.ipynb
 @patch
 @delegates(genai.GenerativeModel.generate_content)
 def __call__(self:Chat,
@@ -208,31 +202,38 @@ def __call__(self:Chat,
     if isinstance(pr,str): pr = pr.strip()
     if pr: self.h.append(mk_msg(pr))
     if self.tools: kwargs['tools'] = self.tools
-    if self.tool_choice: kwargs['tool_config'] = mk_tool_choice(self.tool_choice) # NOTE: Gemini specifies tool_choice via tool_config
+    # NOTE: Gemini specifies tool_choice via tool_config
+    if self.tool_choice: kwargs['tool_config'] = mk_tool_choice(self.tool_choice)
     res = self.c(self.h, stream=stream, sp=self.sp, temp=temp, maxtok=maxtok, **kwargs)
     if stream: return self._stream(res)
     self.h += mk_toolres(self.c.result, ns=self.tools, obj=self)
     return res
 
-# %% ../00_core.ipynb 101
+# %% ../00_core.ipynb
+def media_msg(fn: Path)->dict:
+    f = genai.upload_file(fn)
+    return {'file_data': {'mime_type': f.mime_type, 'file_uri': f.uri}}
+
+# %% ../00_core.ipynb
 def text_msg(s:str)->dict:
     return {'text': s}
 
-# %% ../00_core.ipynb 103
+# %% ../00_core.ipynb
 def _mk_content(src):
     "Create appropriate content data structure based on type of content"
     if isinstance(src,str): return text_msg(src)
     else: return media_msg(src)
 
-# %% ../00_core.ipynb 108
+# %% ../00_core.ipynb
 def mk_msg(content, role='user', **kw):
+    "Create a message"
     if isinstance(content, FunctionResponse): return content
     if isinstance(content, GenerateContentResponse): return find_block(content)
     if content is not None and not isinstance(content, list): content=[content]
     if role == 'user': content = [_mk_content(o) for o in content] if content else ''
     return dict(role=role, parts=content, **kw)
 
-# %% ../00_core.ipynb 116
+# %% ../00_core.ipynb
 def media_msg(fn: Path)->dict:
     print(f"Uploading media...", end='')
     f = genai.upload_file(fn)
