@@ -19,5 +19,3 @@ jobs:
           else
             echo "GEMINI_API_KEY is set"
           fi
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
