@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: fastai/workflows/nbdev-ci@master
-      
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
       - name: Check GEMINI_API_KEY
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then
