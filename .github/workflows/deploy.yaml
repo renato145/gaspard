@@ -4,9 +4,6 @@ permissions:
   contents: write
   pages: write
 
-env:
-  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
 on:
   push:
     branches: [ "main", "master" ]
