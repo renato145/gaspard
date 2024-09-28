@@ -11,23 +11,3 @@ jobs:
       - uses: fastai/workflows/nbdev-ci@master
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-      - name: Check GEMINI_API_KEY
-        run: |
-          if [ -z "$GEMINI_API_KEY" ]; then
-            echo "GEMINI_API_KEY is not set"
-            exit 1
-          else
-            echo "GEMINI_API_KEY is set"
-          fi
-  test-env-var:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check GEMINI_API_KEY
-        run: |
-          if [ -z "$GEMINI_API_KEY" ]; then
-            echo "GEMINI_API_KEY is not set"
-            exit 1
-          else
-            echo "GEMINI_API_KEY is set"
-          fi
