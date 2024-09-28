@@ -1,9 +1,6 @@
 name: CI
 on:  [workflow_dispatch, pull_request, push]
 
-env:
-  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
