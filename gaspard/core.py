@@ -165,6 +165,22 @@ def mk_toolres(
     return res
 
 # %% ../00_core.ipynb
+@patch
+@delegates(Client.__call__)
+def structured(self:Client,
+               msgs:list, # List of messages in the dialog
+               ns:Optional[abc.Mapping]=None, # Namespace to search for tools
+               obj:Optional=None, # Class to search for tools
+               **kwargs):
+    "Return the value of all tool calls (generally used for structured outputs)"
+    res = self(msgs, **kwargs)
+    if ns is None: ns=globals()
+    parts = find_block(res).parts
+    funcs = [p.function_call for p in parts if hasattr(p, 'function_call')]
+    tcs = [call_func(func, ns=ns, obj=obj) for func in funcs]
+    return tcs
+
+# %% ../00_core.ipynb
 def mk_tool_choice(choose: list)->dict:
     return {"function_calling_config": {"mode": "ANY", "allowed_function_names": [x.__name__ for x in choose]}}
 
