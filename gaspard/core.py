@@ -172,7 +172,7 @@ def mk_toolres(
     for func in (tcs or []):
         if not func: continue
         func = convert_func(func)
-        cts = str(call_func(func.name, func.inputs, ns=ns))
+        cts = call_func(func.name, func.inputs, ns=ns)
         tc_res.append(FunctionResponse(name=func.name, response={'result': cts}))
     if tc_res: res.append(mk_msg(tc_res))
     return res
@@ -280,6 +280,22 @@ def _stream(self:Chat, res):
 
 # %% ../00_core.ipynb
 @patch
+def _post_pr(self:Chat, pr, prev_role):
+    if pr is None and prev_role == 'assistant':
+        raise ValueError("Prompt must be given after assistant completion, or use `self.cont_pr`.")
+    if pr: self.h.append(mk_msg(pr))
+
+# %% ../00_core.ipynb
+@patch
+def _append_pr(self:Chat,
+               pr=None,  # Prompt / message
+              ):
+    prev_role = nested_idx(self.h, -1, 'role') if self.h else 'assistant' # First message should be 'user'
+    if pr and prev_role == 'user': self() # already user request pending
+    self._post_pr(pr, prev_role)
+
+# %% ../00_core.ipynb
+@patch
 @delegates(genai.GenerativeModel.generate_content)
 def __call__(self:Chat,
              pr=None,  # Prompt / message
@@ -288,7 +304,7 @@ def __call__(self:Chat,
              stream=False, # Stream response?
              **kwargs):
     if isinstance(pr,str): pr = pr.strip()
-    if pr: self.h.append(mk_msg(pr))
+    self._append_pr(pr)
     if self.tools: kwargs['tools'] = self.tools
     # NOTE: Gemini specifies tool_choice via tool_config
     if self.tool_config: kwargs['tool_config'] = mk_tool_config(self.tool_config)
@@ -311,6 +327,7 @@ def text_msg(s:str)->dict:
 def _mk_content(src):
     "Create appropriate content data structure based on type of content"
     if isinstance(src,str): return text_msg(src)
+    if isinstance(src,FunctionResponse): return src
     else: return media_msg(src)
 
 # %% ../00_core.ipynb
