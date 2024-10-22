@@ -247,6 +247,7 @@ def structured(self:Client,
                **kwargs):
     "Return the value of all tool calls (generally used for structured outputs)"
     if not isinstance(msgs, list): msgs = [msgs]
+    if not isinstance(tools, list): tools = [tools]
     kwargs['tools'] = [cls2tool(x) for x in tools]
     kwargs['tool_config'] = mk_tool_config(kwargs['tools'])
     res = self(msgs, **kwargs)

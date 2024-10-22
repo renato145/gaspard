@@ -55,12 +55,12 @@ chat = Chat(model, sp="""You are a helpful and concise assistant.""")
 chat("I'm Faisal")
 ```
 
-Nice to meet you, Faisal! 😊 How can I help you today?
+Nice to meet you, Faisal! 😊 What can I help you with today?
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘Nice to meet you, Faisal! 😊 How can I
-  help you today? ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ‘Nice to meet you, Faisal! 😊 What can I
+  help you with today? ’}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
@@ -69,9 +69,10 @@ Nice to meet you, Faisal! 😊 How can I help you today?
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
+- avg_logprobs: 0.0
 - prompt_token_count: 13
-- candidates_token_count: 16
-- total_token_count: 29
+- candidates_token_count: 17
+- total_token_count: 30
 - cached_content_token_count: 0
 
 </details>
@@ -95,9 +96,10 @@ Your name is Faisal. 😊
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
-- prompt_token_count: 39
+- avg_logprobs: 0.0
+- prompt_token_count: 40
 - candidates_token_count: 6
-- total_token_count: 45
+- total_token_count: 46
 - cached_content_token_count: 0
 
 </details>
@@ -148,9 +150,9 @@ print(r)
             }
           ],
           "usage_metadata": {
-            "prompt_token_count": 39,
+            "prompt_token_count": 40,
             "candidates_token_count": 6,
-            "total_token_count": 45
+            "total_token_count": 46
           }
         }),
     )
@@ -160,10 +162,22 @@ You can use stream=True to stream the results as soon as they arrive
 notebook yourself, of course!)
 
 ``` python
+chat.h
+```
+
+    [{'role': 'user', 'parts': [{'text': "I'm Faisal"}]},
+     {'role': 'model',
+      'parts': ['Nice to meet you, Faisal! 😊  What can I help you with today? \n']},
+     {'role': 'user', 'parts': [{'text': "What's my name?"}]},
+     {'role': 'model', 'parts': ['Your name is Faisal. 😊 \n']}]
+
+``` python
 for o in chat("What's your name?", stream=True): print(o, end='')
 ```
 
-    I don't have a name! I'm a large language model, so I'm not a person.  But you can call me Bard if you'd like. 😊 
+    I don't have a name. I'm a large language model, and I'm here to help you with information and tasks. 😊 
+
+Woah, welcome back to the land of the living Bard!
 
 ## Tool use
 
@@ -214,66 +228,51 @@ answer, but instead returns a `function_call` message, which means we
 have to call the named function (tool) with the provided parameters:
 
 ``` python
-r = chat(pr)
-r
+type(pr)
+```
+
+    str
+
+``` python
+r = chat(pr); r
 ```
 
     Finding the sum of 604542.0 and 6458932.0
+
+function_call { name: “sums” args { fields { key: “b” value {
+number_value: 6458932 } } fields { key: “a” value { number_value: 604542
+} } } }
+
+<details>
 
 - content: {‘parts’: \[{‘function_call’: {‘name’: ‘sums’, ‘args’: {‘a’:
   604542.0, ‘b’: 6458932.0}}}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
-- safety_ratings: \[{‘category’: 7, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 9,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 8, ‘probability’: 1,
+- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 10,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 7, ‘probability’: 1,
   ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
+- avg_logprobs: 0.0
 - prompt_token_count: 76
 - candidates_token_count: 29
 - total_token_count: 105
 - cached_content_token_count: 0
 
+</details>
+
 Gaspard handles all that for us – we just have to pass along the
 message, and it all happens automatically:
 
 ``` python
-chat()
+chat.h
 ```
 
-7063474.0
-
-<details>
-
-- content: {‘parts’: \[{‘text’: ‘7063474.0 ’}\], ‘role’: ‘model’}
-- finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
-- token_count: 0
-- grounding_attributions: \[\]
-- prompt_token_count: 128
-- candidates_token_count: 9
-- total_token_count: 137
-- cached_content_token_count: 0
-
-</details>
-
-We can inspect the history to see what happens under the hood. Gaspard
-calls the tool with the appropriate variables returned by the
-`function_call` message from the model. The result of calling the
-function is then sent back to the model, which uses that to respond to
-the user.
-
-``` python
-chat.h[-3:]
-```
-
-    [parts {
-       function_call {
+    [{'role': 'user', 'parts': [{'text': 'What is 604542+6458932?'}]},
+     {'role': 'model',
+      'parts': [function_call {
          name: "sums"
          args {
            fields {
@@ -289,23 +288,81 @@ chat.h[-3:]
              }
            }
          }
-       }
-     }
-     role: "model",
-     {'role': 'function',
+       }]},
+     {'role': 'user',
       'parts': [name: "sums"
        response {
          fields {
            key: "result"
            value {
-             string_value: "7063474.0"
+             number_value: 7063474
+           }
+         }
+       }]}]
+
+``` python
+chat()
+```
+
+7063474
+<details>
+
+- content: {‘parts’: \[{‘text’: ‘7063474’}\], ‘role’: ‘model’}
+- finish_reason: 1
+- index: 0
+- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
+  1, ‘blocked’: False}\]
+- token_count: 0
+- grounding_attributions: \[\]
+- avg_logprobs: 0.0
+- prompt_token_count: 126
+- candidates_token_count: 7
+- total_token_count: 133
+- cached_content_token_count: 0
+
+</details>
+
+We can inspect the history to see what happens under the hood. Gaspard
+calls the tool with the appropriate variables returned by the
+`function_call` message from the model. The result of calling the
+function is then sent back to the model, which uses that to respond to
+the user.
+
+``` python
+chat.h[-3:]
+```
+
+    [{'role': 'model',
+      'parts': [function_call {
+         name: "sums"
+         args {
+           fields {
+             key: "b"
+             value {
+               number_value: 6458932
+             }
+           }
+           fields {
+             key: "a"
+             value {
+               number_value: 604542
+             }
            }
          }
        }]},
-     parts {
-       text: "7063474.0 \n"
-     }
-     role: "model"]
+     {'role': 'user',
+      'parts': [name: "sums"
+       response {
+         fields {
+           key: "result"
+           value {
+             number_value: 7063474
+           }
+         }
+       }]},
+     {'role': 'model', 'parts': ['7063474']}]
 
 You can see how many tokens have been used at any time by checking the
 `use` property.
@@ -314,7 +371,7 @@ You can see how many tokens have been used at any time by checking the
 chat.use
 ```
 
-    In: 204; Out: 38; Total: 242
+    In: 202; Out: 36; Total: 238
 
 ## Tool loop
 
@@ -389,7 +446,7 @@ r = chat.toolloop(pr, trace_func=pchoice)
       }
     }
 
-    text: "The answer is 14126948.0. \n"
+    text: "The answer is 14126948. \n"
 
 We can see from the trace above that the model correctly calls the sums
 function first to add the numbers inside the parenthesis and then calls
@@ -401,11 +458,11 @@ chained tool calls, shown below:
 r
 ```
 
-The answer is 14126948.0.
+The answer is 14126948.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The answer is 14126948.0. ’}\], ‘role’:
+- content: {‘parts’: \[{‘text’: ‘The answer is 14126948. ’}\], ‘role’:
   ‘model’}
 - finish_reason: 1
 - index: 0
@@ -415,23 +472,76 @@ The answer is 14126948.0.
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
-- prompt_token_count: 230
-- candidates_token_count: 15
-- total_token_count: 245
+- avg_logprobs: 0.0
+- prompt_token_count: 226
+- candidates_token_count: 13
+- total_token_count: 239
 - cached_content_token_count: 0
 
 </details>
 
+## Structured Outputs
+
+If you just want the immediate result from a single tool, use
+[`Client.structured`](https://AnswerDotAI.github.io/gaspard/core.html#client.structured).
+
+``` python
+cli = Client(model)
+```
+
+``` python
+def sums(
+    a:int,  # First thing to sum
+    b:int=1 # Second thing to sum
+) -> int: # The sum of the inputs
+    "Adds a + b."
+    print(f"Finding the sum of {a} and {b}")
+    return a + b
+```
+
+``` python
+cli.structured("What is 604542+6458932", sums)
+```
+
+    Finding the sum of 604542.0 and 6458932.0
+
+    [7063474.0]
+
+This is particularly useful for getting back structured information,
+e.g:
+
+``` python
+class President(BasicRepr):
+    "Information about a president of the United States"
+    def __init__(self, 
+                first:str, # first name
+                last:str, # last name
+                spouse:str, # name of spouse
+                years_in_office:str, # format: "{start_year}-{end_year}"
+                birthplace:str, # name of city
+                birth_year:int # year of birth, `0` if unknown
+        ):
+        assert re.match(r'\d{4}-\d{4}', years_in_office), "Invalid format: `years_in_office`"
+        store_attr()
+```
+
+``` python
+cli.structured("Provide key information about the 3rd President of the United States", President)[0]
+```
+
+    President(first='Thomas', last='Jefferson', spouse='Martha Wayles Skelton', years_in_office='1801-1809', birthplace='Shadwell, Virginia', birth_year=1743.0)
+
 ## Images
 
 As everyone knows, when testing image APIs you have to use a cute puppy.
+But, that’s boring, so here’s a baby hippo instead.
 
 ``` python
-img_fn = Path('samples/puppy.jpg')
+img_fn = Path('samples/baby_hippo.jpg')
 display.Image(filename=img_fn, width=200)
 ```
 
-<img src="index_files/figure-commonmark/cell-22-output-1.jpeg"
+<img src="index_files/figure-commonmark/cell-30-output-1.jpeg"
 width="200" />
 
 We create a
@@ -448,17 +558,16 @@ prompt, we simply pass in a list of items. Note that Gaspard expects
 each item to be a text or a `Path` object.
 
 ``` python
-chat([img_fn, "In brief, what color flowers are in this image?"])
+chat([img_fn, "In brief, is happening in the photo?"])
 ```
 
     Uploading media...
 
-The flowers in the image are purple.
-
+A small hippopotamus is resting its head on a person’s hand.
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The flowers in the image are purple.
-  ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: “A small hippopotamus is resting its
+  head on a person’s hand.”}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
@@ -467,9 +576,10 @@ The flowers in the image are purple.
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
-- prompt_token_count: 270
-- candidates_token_count: 8
-- total_token_count: 278
+- avg_logprobs: 0.0
+- prompt_token_count: 268
+- candidates_token_count: 15
+- total_token_count: 283
 - cached_content_token_count: 0
 
 </details>
@@ -483,7 +593,7 @@ included in input tokens.
 chat.use
 ```
 
-    In: 270; Out: 8; Total: 278
+    In: 268; Out: 15; Total: 283
 
 Alternatively, Gaspard supports creating a multi-stage chat with
 separate image and text prompts. For instance, you can pass just the
@@ -498,14 +608,19 @@ chat(img_fn)
 
     Uploading media...
 
-This is a cute puppy! It looks like a Cavalier King Charles Spaniel.
-They are known for being friendly, playful, and affectionate dogs. 🐶💕
-
+This is a very cute photo of a baby hippopotamus. It looks like it’s
+being petted by a human hand. The hippopotamus has a very sweet
+expression on its face and looks very happy to be getting attention. The
+photo is taken from a close up perspective, which makes the hippopotamus
+look even cuter.
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘This is a cute puppy! It looks like a
-  Cavalier King Charles Spaniel. They are known for being friendly,
-  playful, and affectionate dogs. 🐶💕 ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: “This is a very cute photo of a baby
+  hippopotamus. It looks like it’s being petted by a human hand. The
+  hippopotamus has a very sweet expression on its face and looks very
+  happy to be getting attention. The photo is taken from a close up
+  perspective, which makes the hippopotamus look even cuter.”}\],
+  ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
@@ -514,23 +629,24 @@ They are known for being friendly, playful, and affectionate dogs. 🐶💕
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
+- avg_logprobs: 0.0
 - prompt_token_count: 259
-- candidates_token_count: 32
-- total_token_count: 291
+- candidates_token_count: 66
+- total_token_count: 325
 - cached_content_token_count: 0
 
 </details>
 
 ``` python
-chat('What direction is the puppy facing?')
+chat('What direction is the hippo facing?')
 ```
 
-The puppy is facing towards the right side of the image.
+The hippopotamus is facing **towards the right**.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The puppy is facing towards the right
-  side of the image. ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ‘The hippopotamus is facing **towards
+  the right**. ’}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
@@ -539,9 +655,10 @@ The puppy is facing towards the right side of the image.
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
-- prompt_token_count: 302
-- candidates_token_count: 12
-- total_token_count: 314
+- avg_logprobs: 0.0
+- prompt_token_count: 334
+- candidates_token_count: 10
+- total_token_count: 344
 - cached_content_token_count: 0
 
 </details>
@@ -550,12 +667,14 @@ The puppy is facing towards the right side of the image.
 chat('What color is it?')
 ```
 
-The puppy is white with brown markings.
+The baby hippopotamus is a light greyish-brown color. It’s also a bit
+pink on its belly and around its eyes.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The puppy is white with brown markings.
-  ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: “The baby hippopotamus is a light
+  greyish-brown color. It’s also a bit pink on its belly and around its
+  eyes. ”}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
@@ -564,9 +683,10 @@ The puppy is white with brown markings.
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
-- prompt_token_count: 323
-- candidates_token_count: 8
-- total_token_count: 331
+- avg_logprobs: 0.0
+- prompt_token_count: 353
+- candidates_token_count: 28
+- total_token_count: 381
 - cached_content_token_count: 0
 
 </details>
@@ -579,7 +699,7 @@ with this kind of chat.
 chat.use
 ```
 
-    In: 884; Out: 52; Total: 936
+    In: 946; Out: 104; Total: 1050
 
 ## Other Media
 
@@ -602,47 +722,35 @@ chat([pdf_fn, "In brief, what are the main ideas of this paper?"])
 
     Uploading media...
 
-This paper proposes a new architecture for sequence transduction models
-called the Transformer, which relies entirely on attention mechanisms to
-draw global dependencies between input and output. The Transformer
-eschews recurrence and convolutions entirely, making it significantly
-more parallelizable and requiring less time to train. Experiments on two
-machine translation tasks show that the Transformer models are superior
-in quality to existing models, including ensembles, while also being
-more parallelizable and requiring significantly less time to train. The
-authors also show that the Transformer generalizes well to other tasks
-by applying it successfully to English constituency parsing both with
-large and limited training data.
-
+This paper introduces the Transformer, a new neural network architecture
+for sequence transduction. It uses attention mechanisms to model
+dependencies between input and output, rather than recurrent or
+convolutional neural networks. The Transformer is significantly faster
+to train and achieves state-of-the-art results on machine translation
+tasks. The paper also shows that the Transformer generalizes well to
+other tasks, such as English constituency parsing.
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘This paper proposes a new architecture
-  for sequence transduction models called the Transformer, which relies
-  entirely on attention mechanisms to draw global dependencies between
-  input and output. The Transformer eschews recurrence and convolutions
-  entirely, making it significantly more parallelizable and requiring
-  less time to train. Experiments on two machine translation tasks show
-  that the Transformer models are superior in quality to existing
-  models, including ensembles, while also being more parallelizable and
-  requiring significantly less time to train. The authors also show that
-  the Transformer generalizes well to other tasks by applying it
-  successfully to English constituency parsing both with large and
-  limited training data.’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ‘This paper introduces the Transformer,
+  a new neural network architecture for sequence transduction. It uses
+  attention mechanisms to model dependencies between input and output,
+  rather than recurrent or convolutional neural networks. The
+  Transformer is significantly faster to train and achieves
+  state-of-the-art results on machine translation tasks. The paper also
+  shows that the Transformer generalizes well to other tasks, such as
+  English constituency parsing.’}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
   {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
   ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
   1, ‘blocked’: False}\]
-- citation_metadata: {‘citation_sources’: \[{‘start_index’: 586,
-  ‘end_index’: 739, ‘uri’:
-  ‘https://swethatanamala.github.io/2018/12/20/nlp-attention-is-all-you-need/’,
-  ‘license\_’: ’’}\]}
 - token_count: 0
 - grounding_attributions: \[\]
+- avg_logprobs: 0.0
 - prompt_token_count: 14923
-- candidates_token_count: 119
-- total_token_count: 15042
+- candidates_token_count: 77
+- total_token_count: 15000
 - cached_content_token_count: 0
 
 </details>
@@ -663,20 +771,66 @@ chat([audio_fn, pr])
 
     Uploading media...
 
-The podcast focuses on the core ideas and implications of the paper
-“Attention Is All You Need,” but it doesn’t delve into the detailed
-technical aspects, such as the mathematical formulation of the scaled
-dot-product attention mechanism, the specific hyperparameters used for
-training, or the experimental setup and analysis methods.
+The podcast doesn’t mention several important aspects of the paper,
+including:
+
+- **Specific details about the architecture of the Transformer.** While
+  the podcast discusses the core idea of attention mechanisms and how
+  they differ from previous models, it doesn’t explain the specific
+  details of the Transformer’s architecture, such as the number of
+  layers, the dimension of the embeddings, or the specific type of
+  attention mechanism used.
+- **Empirical results for other tasks.** The podcast focuses on machine
+  translation results, but the paper also evaluates the Transformer’s
+  performance on English constituency parsing.
+- **Limitations and future directions.** The podcast mentions the
+  authors’ acknowledgement of the quadratic cost of attention for long
+  sequences and their suggestion to explore restricted attention
+  mechanisms. However, it doesn’t delve deeper into the potential
+  limitations of the Transformer and the authors’ specific plans for
+  future research.
+- **The significance of the Transformer for the field of natural
+  language processing.** The podcast mentions the potential for faster
+  training and better results across NLP tasks, but it doesn’t elaborate
+  on the broader impact of the Transformer on the field, such as its
+  ability to handle different modalities and the shift from recurrent to
+  attention-based models.
+- **Visualizations of attention.** The podcast doesn’t mention the
+  paper’s inclusion of visualizations of the attention mechanism, which
+  provide insights into how the model learns to capture syntactic and
+  semantic relationships between words.
+
+Overall, the podcast provides a high-level overview of the paper, but it
+doesn’t go into the depth of detail that the paper itself provides.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The podcast focuses on the core ideas
-  and implications of the paper “Attention Is All You Need,” but it
-  doesn't delve into the detailed technical aspects, such as the
-  mathematical formulation of the scaled dot-product attention
-  mechanism, the specific hyperparameters used for training, or the
-  experimental setup and analysis methods. ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: “The podcast doesn’t mention several
+  important aspects of the paper, including: **Specific details about
+  the architecture of the Transformer.** While the podcast discusses the
+  core idea of attention mechanisms and how they differ from previous
+  models, it doesn’t explain the specific details of the Transformer’s
+  architecture, such as the number of layers, the dimension of the
+  embeddings, or the specific type of attention mechanism used.
+  **Empirical results for other tasks.** The podcast focuses on machine
+  translation results, but the paper also evaluates the Transformer’s
+  performance on English constituency parsing. **Limitations and future
+  directions.** The podcast mentions the authors’ acknowledgement of the
+  quadratic cost of attention for long sequences and their suggestion to
+  explore restricted attention mechanisms. However, it doesn’t delve
+  deeper into the potential limitations of the Transformer and the
+  authors’ specific plans for future research. **The significance of the
+  Transformer for the field of natural language processing.** The
+  podcast mentions the potential for faster training and better results
+  across NLP tasks, but it doesn’t elaborate on the broader impact of
+  the Transformer on the field, such as its ability to handle different
+  modalities and the shift from recurrent to attention-based models.
+  **Visualizations of attention.** The podcast doesn’t mention the
+  paper’s inclusion of visualizations of the attention mechanism, which
+  provide insights into how the model learns to capture syntactic and
+  semantic relationships between words. , the podcast provides a
+  high-level overview of the paper, but it doesn’t go into the depth of
+  detail that the paper itself provides.”}\], ‘role’: ‘model’}
 - finish_reason: 1
 - index: 0
 - safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
@@ -685,9 +839,10 @@ training, or the experimental setup and analysis methods.
   1, ‘blocked’: False}\]
 - token_count: 0
 - grounding_attributions: \[\]
-- prompt_token_count: 22905
-- candidates_token_count: 61
-- total_token_count: 22966
+- avg_logprobs: 0.0
+- prompt_token_count: 22863
+- candidates_token_count: 320
+- total_token_count: 23183
 - cached_content_token_count: 0
 
 </details>
@@ -699,4 +854,47 @@ really fast!
 chat.use
 ```
 
-    In: 37828; Out: 180; Total: 38008
+    In: 37786; Out: 397; Total: 38183
+
+We can also use structured outputs with multi-modal data:
+
+``` python
+class AudioMetadata(BasicRepr):
+    """Class to hold metadata for audio files"""
+    def __init__(
+        self,
+        n_speakers:int, # Number of speakers
+        topic:str, # Topic discussed
+        summary:str, # 100 word summary
+        transcript:list[str], # Transcript of the audio segmented by speaker
+    ): store_attr()
+pr = "Extract the necessary information from the audio."
+```
+
+``` python
+audio_md = cli.structured(mk_msgs([[audio_fn, pr]]), tools=[AudioMetadata])[0]
+```
+
+    Uploading media...
+
+``` python
+print(f'Number of speakers: {audio_md.n_speakers}')
+print(f'Topic: {audio_md.topic}')
+print(f'Summary: {audio_md.summary}')
+transcript = '\n-'.join(list(audio_md.transcript)[:10])
+print(f'Transcript: {transcript}')
+```
+
+    Number of speakers: 2.0
+    Topic: Machine Learning and NLP
+    Summary: This podcast dives into the paper \"Attention is All You Need\" by Vaswani et al., which introduces a new model architecture called the Transformer, based entirely on attention mechanisms, eliminating recurrence and convolutions used in previous models. This paper addresses limitations in previous models by proposing a new architecture which utilizes a stack of identical layers for both encoder and decoder. The authors highlight the model's capability to efficiently handle long-range dependencies in language, as well as its scalability and efficiency in training. The discussion also touches on the broader implications of this research, opening up new possibilities for sequence transduction tasks in the field of NLP.
+    Transcript: 00:00 Welcome to our podcast where we dive
+    -00:01 into groundbreaking research papers.
+    -00:02 Today, we're discussing Attention is all
+    -00:03 you need by Vaswani et al.
+    -00:04 Joining us is an expert in machine
+    -00:05 learning. Welcome.
+    -00:06 Thanks for having me. I'm
+    -00:07 excited to discuss this revolutionary
+    -00:08 paper. Let's start with the core idea.
+    -00:09 What's the main thrust of this research?
