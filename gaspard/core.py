@@ -3,10 +3,11 @@
 # %% auto 0
 __all__ = ['UsageMetadata', 'empty', 'models', 'j2p_map', 'find_block', 'contents', 'usage', 'mk_msgs', 'Client', 'get_stream',
            'convert_func', 'mk_toolres', 'json2proto', 'cls2tool', 'mk_args', 'mk_tool_config', 'Chat', 'media_msg',
-           'text_msg', 'mk_msg', 'get_mime']
+           'text_msg', 'mk_msg']
 
 # %% ../00_core.ipynb
-import inspect, typing, mimetypes, base64, json, ast, os, time, proto, tempfile
+import inspect, typing, mimetypes, base64, json, ast, os, time, proto
+import filetype as ft
 import google.generativeai as genai
 from google.generativeai.types.generation_types import GenerateContentResponse, GenerationConfig
 from google.generativeai.protos import FunctionCall, Content, FunctionResponse, FunctionDeclaration
@@ -346,35 +347,16 @@ def mk_msgs(msgs:list, **kw):
     return [mk_msg(o, ('user','model')[i%2], **kw) for i,o in enumerate(msgs)]
 
 # %% ../00_core.ipynb
-_sigs = {
-    b'\xff\xd8\xff': 'image/jpeg',
-    b'\x89PNG\r\n': 'image/png', 
-    b'%PDF': 'application/pdf',
-    b'ID3': 'audio/mpeg',
-    b'\x00\x00\x00': 'video/mp4'
-}
-
-def get_mime(b:bytes  # Raw bytes to analyze
-            )->str:   # MIME type of the data
-    "Get MIME type from bytes using file signatures"
-    for sig,mime in _sigs.items():
-        if b.startswith(sig): return mime
-    raise Exception(f"Unsupported MIME type for {len(b)} bytes")
-
-# %% ../00_core.ipynb
 def media_msg(
     media, # Media to process (Path|bytes|dict)
     mime=None # Optional mime type
 )->dict: # Dict for Gemini API
     "Handle media input as either Path or bytes, returning dict for Gemini API"
-    if isinstance(media, dict): return media
+    if isinstance(media, dict): return media # Already processed
     def _upload(f, mime=None):
         f = genai.upload_file(f, mime_type=mime)
         while f.state.name == "PROCESSING": time.sleep(2); f = genai.get_file(f.name)
         return {'file_data': {'mime_type': f.mime_type, 'file_uri': f.uri}}
     if isinstance(media, (str,Path)): return _upload(media)
-    if isinstance(media, bytes) and mime is None: mime = get_mime(media)
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-        f.write(media if isinstance(media, bytes) else media.encode())
-        try: return _upload(f.name, mime)
-        finally: os.unlink(f.name)
+    if isinstance(media, bytes) and mime is None: mime = ft.guess(media).mime
+    return _upload(io.BytesIO(media if isinstance(media, bytes) else media.encode()), mime)
