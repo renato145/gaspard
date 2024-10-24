@@ -156,6 +156,30 @@ def get_pricing(m, u):
     return pricing[m][:3] if u.prompt_token_count < 128_000 else pricing[m][3:]
 
 # %% ../00_core.ipynb
+@patch(as_prop=True)
+def cost(self:Client):
+    inp_cost, out_cost, cache_cost = get_pricing(self.model.split('-exp-')[0], self.use)
+    return (self.use.prompt_token_count * inp_cost + self.use.candidates_token_count * out_cost + self.use.cached_content_token_count * cache_cost) / 1e6
+
+# %% ../00_core.ipynb
+@patch
+def _repr_markdown_(self:Client):
+    if not hasattr(self,'result'): return 'No results yet'
+    msg = contents(self.result)
+    inp_cost,out_cost,_ = get_pricing(self.model.split('-exp-')[0], self.use)
+    in_cost = self.use.prompt_token_count * inp_cost/1e6
+    out_cost = self.use.candidates_token_count * out_cost/1e6
+    cache_cost = self.use.cached_content_token_count * out_cost/1e6
+    return f"""{msg}
+
+| Metric | Count | Cost (USD) |
+|--------|------:|-----:|
+| Input tokens | {self.use.prompt_token_count:,} | {in_cost:.6f} |
+| Output tokens | {self.use.candidates_token_count:,} | {out_cost:.6f} |
+| Cache tokens | {self.use.cached_content_token_count:,} | {cache_cost:.6f} |
+| **Total** | **{self.use.total:,}** | **${self.cost:.6f}** |"""
+
+# %% ../00_core.ipynb
 def contents(r):
     "Helper to get the contents from response `r`."
     blk = find_block(r)
@@ -330,23 +354,6 @@ def __call__(self:Chat,
     return res
 
 # %% ../00_core.ipynb
-@patch
-def _repr_markdown_(self:Chat):
-    if not hasattr(self.c, 'result'): return 'No results yet'
-    last_msg = contents(self.c.result)
-    history = '\n\n'.join(f"**{m['role']}**: {m['parts'][0] if isinstance(m['parts'][0],str) else m['parts'][0].text}" 
-                         for m in self.h if m['role'] in ('user','model'))
-    det = self.c._repr_markdown_().split('\n\n')[-1]
-    return f"""{last_msg}
-
-<details>
-<summary>History</summary>
-
-{history}
-</details>
-{det}"""
-
-# %% ../00_core.ipynb
 def media_msg(fn: Path)->dict:
     if isinstance(fn, dict): return fn # Already processed
     f = genai.upload_file(fn)
@@ -376,6 +383,33 @@ def mk_msgs(msgs:list, **kw):
     "Helper to set 'assistant' role on alternate messages."
     if isinstance(msgs,str): msgs=[msgs]
     return [mk_msg(o, ('user','model')[i%2], **kw) for i,o in enumerate(msgs)]
+
+# %% ../00_core.ipynb
+@patch
+def _repr_markdown_(self:Chat):
+    if not hasattr(self.c, 'result'): return 'No results yet'
+    last_msg = contents(self.c.result)
+    
+    def fmt_part(ps):
+        if len(ps) == 1: return fmt_single(ps[0])
+        return '\n' + '\n'.join(f'- {fmt_single(p)}' for p in ps)
+        
+    def fmt_single(p):
+        if 'text' in p: return p['text']
+        if 'file_data' in p: return f"uploaded media: {p['file_data']['mime_type']}"
+        return str(p)
+        
+    history = '\n\n'.join(f"**{m['role']}**: {fmt_part(m['parts'])}" 
+                         for m in self.h if m['role'] in ('user','model'))
+    det = self.c._repr_markdown_().split('\n\n')[-1]
+    return f"""{last_msg}
+
+<details>
+<summary>History</summary>
+
+{history}
+</details>
+{det}"""
 
 # %% ../00_core.ipynb
 def media_msg(
