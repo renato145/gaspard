@@ -6,7 +6,7 @@ __all__ = ['UsageMetadata', 'empty', 'models', 'j2p_map', 'find_block', 'content
            'text_msg', 'mk_msg']
 
 # %% ../00_core.ipynb
-import inspect, typing, mimetypes, base64, json, ast, os, time, proto
+import inspect, typing, mimetypes, base64, json, ast, io, os, time, proto
 import filetype as ft
 import google.generativeai as genai
 from google.generativeai.types.generation_types import GenerateContentResponse, GenerationConfig
