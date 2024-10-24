@@ -6,7 +6,8 @@ __all__ = ['UsageMetadata', 'empty', 'models', 'j2p_map', 'find_block', 'content
            'text_msg', 'mk_msg']
 
 # %% ../00_core.ipynb
-import inspect, typing, mimetypes, base64, json, ast, os, time, proto
+import inspect, typing, mimetypes, base64, json, ast, io, os, time, proto
+import filetype as ft
 import google.generativeai as genai
 from google.generativeai.types.generation_types import GenerateContentResponse, GenerationConfig
 from google.generativeai.protos import FunctionCall, Content, FunctionResponse, FunctionDeclaration
@@ -346,12 +347,16 @@ def mk_msgs(msgs:list, **kw):
     return [mk_msg(o, ('user','model')[i%2], **kw) for i,o in enumerate(msgs)]
 
 # %% ../00_core.ipynb
-def media_msg(fn: Path)->dict:
-    if isinstance(fn, dict): return fn # Already processed
-    print(f"Uploading media...", end='')
-    f = genai.upload_file(fn)
-    while f.state.name == "PROCESSING":
-        print('.', end='')
-        time.sleep(2)
-        f = genai.get_file(f.name)
-    return {'file_data': {'mime_type': f.mime_type, 'file_uri': f.uri}}
+def media_msg(
+    media, # Media to process (Path|bytes|dict)
+    mime=None # Optional mime type
+)->dict: # Dict for Gemini API
+    "Handle media input as either Path or bytes, returning dict for Gemini API"
+    if isinstance(media, dict): return media # Already processed
+    def _upload(f, mime=None):
+        f = genai.upload_file(f, mime_type=mime)
+        while f.state.name == "PROCESSING": time.sleep(2); f = genai.get_file(f.name)
+        return {'file_data': {'mime_type': f.mime_type, 'file_uri': f.uri}}
+    if isinstance(media, (str,Path)): return _upload(media)
+    if isinstance(media, bytes) and mime is None: mime = ft.guess(media).mime
+    return _upload(io.BytesIO(media if isinstance(media, bytes) else media.encode()), mime)
