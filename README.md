@@ -32,16 +32,20 @@ Gaspard provides models, which lists the models available in the SDK
 models
 ```
 
-    ('gemini-1.5-pro-exp-0827',
-     'gemini-1.5-flash-exp-0827',
+    ('gemini-2.0-flash-exp',
+     'gemini-exp-1206',
+     'learnlm-1.5-pro-experimental',
+     'gemini-exp-1121',
      'gemini-1.5-pro',
-     'gemini-1.5-flash')
+     'gemini-1.5-flash',
+     'gemini-1.5-flash-8b')
 
-For our examples we’ll use `gemini-1.5-flash` since it’s relatively
-faster and cheaper.
+For our examples we’ll use `gemini-2.0-flash-exp` since it’s awesome,
+has a 1M context window and is currently free while in the experimental
+stage.
 
 ``` python
-model = models[-1]
+model = models[0]
 ```
 
 ## Chat
@@ -55,24 +59,23 @@ chat = Chat(model, sp="""You are a helpful and concise assistant.""")
 chat("I'm Faisal")
 ```
 
-Nice to meet you, Faisal! 😊 What can I help you with today?
+Hi Faisal, it’s nice to meet you!
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘Nice to meet you, Faisal! 😊 What can I
-  help you with today? ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: “Hi Faisal, it’s nice to meet you!”}\],
+  ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.04827792942523956
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 13
-- candidates_token_count: 17
-- total_token_count: 30
+- prompt_token_count: 14
+- candidates_token_count: 12
+- total_token_count: 26
 - cached_content_token_count: 0
 
 </details>
@@ -82,24 +85,23 @@ r = chat("What's my name?")
 r
 ```
 
-Your name is Faisal. 😊
+Your name is Faisal.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘Your name is Faisal. 😊 ’}\], ‘role’:
+- content: {‘parts’: \[{‘text’: ‘Your name is Faisal.’}\], ‘role’:
   ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -1.644962443000016e-05
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 40
+- prompt_token_count: 35
 - candidates_token_count: 6
-- total_token_count: 46
+- total_token_count: 41
 - cached_content_token_count: 0
 
 </details>
@@ -122,20 +124,19 @@ print(r)
               "content": {
                 "parts": [
                   {
-                    "text": "Your name is Faisal. \ud83d\ude0a \n"
+                    "text": "Your name is Faisal.\n"
                   }
                 ],
                 "role": "model"
               },
               "finish_reason": "STOP",
-              "index": 0,
               "safety_ratings": [
                 {
-                  "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                  "category": "HARM_CATEGORY_HATE_SPEECH",
                   "probability": "NEGLIGIBLE"
                 },
                 {
-                  "category": "HARM_CATEGORY_HATE_SPEECH",
+                  "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
                   "probability": "NEGLIGIBLE"
                 },
                 {
@@ -143,16 +144,17 @@ print(r)
                   "probability": "NEGLIGIBLE"
                 },
                 {
-                  "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                  "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
                   "probability": "NEGLIGIBLE"
                 }
-              ]
+              ],
+              "avg_logprobs": -1.644962443000016e-05
             }
           ],
           "usage_metadata": {
-            "prompt_token_count": 40,
+            "prompt_token_count": 35,
             "candidates_token_count": 6,
-            "total_token_count": 46
+            "total_token_count": 41
           }
         }),
     )
@@ -165,17 +167,16 @@ notebook yourself, of course!)
 chat.h
 ```
 
-    [{'role': 'user', 'parts': [{'text': "I'm Faisal"}]},
-     {'role': 'model',
-      'parts': ['Nice to meet you, Faisal! 😊  What can I help you with today? \n']},
-     {'role': 'user', 'parts': [{'text': "What's my name?"}]},
-     {'role': 'model', 'parts': ['Your name is Faisal. 😊 \n']}]
+    [{'role': 'user', 'parts': [{'text': "I'm Faisal"}, ' ']},
+     {'role': 'model', 'parts': ["Hi Faisal, it's nice to meet you!\n"]},
+     {'role': 'user', 'parts': [{'text': "What's my name?"}, ' ']},
+     {'role': 'model', 'parts': ['Your name is Faisal.\n']}]
 
 ``` python
-for o in chat("What's your name?", stream=True): print(o, end='')
+for o in chat("What's your name? Tell me your story", stream=True): print(o, end='')
 ```
 
-    I don't have a name. I'm a large language model, and I'm here to help you with information and tasks. 😊 
+    I don't have a name or a personal story in the way a human does. I am a large language model, created by Google AI. I was trained on a massive amount of text data to be able to communicate and generate human-like text. I don't have a body, feelings, or memories, but I'm here to help you with information and tasks.
 
 Woah, welcome back to the land of the living Bard!
 
@@ -248,17 +249,16 @@ number_value: 6458932 } } fields { key: “a” value { number_value: 604542
 - content: {‘parts’: \[{‘function_call’: {‘name’: ‘sums’, ‘args’: {‘a’:
   604542.0, ‘b’: 6458932.0}}}\], ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 10,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 7, ‘probability’: 1,
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
   ‘blocked’: False}\]
+- avg_logprobs: -9.219200364896096e-06
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 76
-- candidates_token_count: 29
-- total_token_count: 105
+- prompt_token_count: 77
+- candidates_token_count: 3
+- total_token_count: 80
 - cached_content_token_count: 0
 
 </details>
@@ -270,7 +270,7 @@ message, and it all happens automatically:
 chat.h
 ```
 
-    [{'role': 'user', 'parts': [{'text': 'What is 604542+6458932?'}]},
+    [{'role': 'user', 'parts': [{'text': 'What is 604542+6458932?'}, ' ']},
      {'role': 'model',
       'parts': [function_call {
          name: "sums"
@@ -298,28 +298,29 @@ chat.h
              number_value: 7063474
            }
          }
-       }]}]
+       },
+       {'text': ' '}]}]
 
 ``` python
 chat()
 ```
 
 7063474
+
 <details>
 
 - content: {‘parts’: \[{‘text’: ‘7063474’}\], ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.005276891868561506
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 126
-- candidates_token_count: 7
-- total_token_count: 133
+- prompt_token_count: 128
+- candidates_token_count: 8
+- total_token_count: 136
 - cached_content_token_count: 0
 
 </details>
@@ -361,8 +362,9 @@ chat.h[-3:]
              number_value: 7063474
            }
          }
-       }]},
-     {'role': 'model', 'parts': ['7063474']}]
+       },
+       {'text': ' '}]},
+     {'role': 'model', 'parts': ['7063474\n']}]
 
 You can see how many tokens have been used at any time by checking the
 `use` property.
@@ -371,7 +373,7 @@ You can see how many tokens have been used at any time by checking the
 chat.use
 ```
 
-    In: 202; Out: 36; Total: 238
+    In: 205; Out: 11; Total: 216
 
 ## Tool loop
 
@@ -446,7 +448,7 @@ r = chat.toolloop(pr, trace_func=pchoice)
       }
     }
 
-    text: "The answer is 14126948. \n"
+    text: "(604542+6458932)*2 = 14126948\n"
 
 We can see from the trace above that the model correctly calls the sums
 function first to add the numbers inside the parenthesis and then calls
@@ -458,24 +460,23 @@ chained tool calls, shown below:
 r
 ```
 
-The answer is 14126948.
+(604542+6458932)\*2 = 14126948
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The answer is 14126948. ’}\], ‘role’:
-  ‘model’}
+- content: {‘parts’: \[{‘text’: ’(604542+6458932)\*2 = 14126948’}\],
+  ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.00017791306267359426
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 226
-- candidates_token_count: 13
-- total_token_count: 239
+- prompt_token_count: 229
+- candidates_token_count: 28
+- total_token_count: 257
 - cached_content_token_count: 0
 
 </details>
@@ -529,7 +530,7 @@ class President(BasicRepr):
 cli.structured("Provide key information about the 3rd President of the United States", President)[0]
 ```
 
-    President(first='Thomas', last='Jefferson', spouse='Martha Wayles Skelton', years_in_office='1801-1809', birthplace='Shadwell, Virginia', birth_year=1743.0)
+    President(first='Thomas', last='Jefferson', spouse='Martha Wayles Skelton', years_in_office='1801-1809', birthplace='Shadwell', birth_year=1743.0)
 
 ## Images
 
@@ -561,25 +562,28 @@ each item to be a text or a `Path` object.
 chat([img_fn, "In brief, is happening in the photo?"])
 ```
 
-    Uploading media...
+Certainly!
 
-A small hippopotamus is resting its head on a person’s hand.
+In the photo, a person’s hand is gently touching the chin of a baby
+hippopotamus. The hippo is sitting on the ground and appears to be
+looking straight at the camera.
 <details>
 
-- content: {‘parts’: \[{‘text’: “A small hippopotamus is resting its
-  head on a person’s hand.”}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: “Certainly!the photo, a person’s hand is
+  gently touching the chin of a baby hippopotamus. The hippo is sitting
+  on the ground and appears to be looking straight at the camera.”}\],
+  ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.3545633316040039
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
 - prompt_token_count: 268
-- candidates_token_count: 15
-- total_token_count: 283
+- candidates_token_count: 40
+- total_token_count: 308
 - cached_content_token_count: 0
 
 </details>
@@ -593,46 +597,119 @@ included in input tokens.
 chat.use
 ```
 
-    In: 268; Out: 15; Total: 283
+    In: 268; Out: 40; Total: 308
 
 Alternatively, Gaspard supports creating a multi-stage chat with
 separate image and text prompts. For instance, you can pass just the
 image as the initial prompt (in which case the model will make some
-general comments about what it sees), and then follow up with questions
-in additional prompts:
+general comments about what it sees, which can be VERY detailed
+depending on the model and often begin with “Certainly!” for some
+reason), and then follow up with questions in additional prompts:
 
 ``` python
 chat = Chat(model)
 chat(img_fn)
 ```
 
-    Uploading media...
+Certainly! Here’s a description of the image you sent:
 
-This is a very cute photo of a baby hippopotamus. It looks like it’s
-being petted by a human hand. The hippopotamus has a very sweet
-expression on its face and looks very happy to be getting attention. The
-photo is taken from a close up perspective, which makes the hippopotamus
-look even cuter.
+**Overall Scene:**
+
+The image is a close-up shot of a baby hippopotamus being gently petted
+by a human hand. The scene is heartwarming and focuses on the
+interaction between the adorable hippo calf and the human.
+
+**Baby Hippo:**
+
+- **Appearance:** The hippo is a very young calf with a plump, rounded
+  body. Its skin is a mottled gray color, with hints of pink especially
+  around its neck and cheeks. Its eyes are dark and soulful, giving it
+  an endearing expression. The calf has a small, broad snout and tiny,
+  rounded ears.
+- **Pose:** The hippo is sitting with its short legs tucked beneath its
+  body. It’s looking directly at the camera with a slightly curious and
+  passive expression.
+- **Texture:** The hippo’s skin appears smooth and moist, suggesting it
+  might be wet or freshly out of the water.
+
+**Human Hand:**
+
+- **Position:** The hand is placed gently under the hippo’s chin and
+  neck, supporting its head. The fingers are slightly curved and not
+  gripping tightly, demonstrating a caring touch.
+- **Texture:** The skin of the hand appears soft and well-maintained.
+
+**Background:**
+
+- **Setting:** The background is out of focus, but it appears to be a
+  rocky, possibly aquatic, environment. The textures in the background
+  are muted and do not detract from the main subjects of the photo.
+- **Date**: There’s a watermark saying “Thailand 9/2024”, indicating the
+  location and date of the image.
+
+**Mood/Tone:**
+
+- The image evokes a sense of gentleness and tenderness. The close-up
+  perspective and the gentle touch of the hand create a very intimate
+  and sweet scene.
+- The calf’s innocent expression adds to the overall cuteness and warmth
+  of the image.
+
+**Overall Impression:**
+
+The image captures a beautiful moment of interaction between a human and
+a very young, vulnerable animal. The photograph emphasizes the gentle
+nature of the interaction and the sheer adorableness of the baby hippo,
+making it a very touching and memorable picture.
+
+Let me know if you would like a description from another perspective or
+have any other questions about the image!
 <details>
 
-- content: {‘parts’: \[{‘text’: “This is a very cute photo of a baby
-  hippopotamus. It looks like it’s being petted by a human hand. The
-  hippopotamus has a very sweet expression on its face and looks very
-  happy to be getting attention. The photo is taken from a close up
-  perspective, which makes the hippopotamus look even cuter.”}\],
-  ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ’Certainly! Here's a description of the
+  image you sent:\*Overall Scene:\*\*image is a close-up shot of a baby
+  hippopotamus being gently petted by a human hand. The scene is
+  heartwarming and focuses on the interaction between the adorable hippo
+  calf and the human. \*Baby Hippo:****Appearance:** The hippo is a very
+  young calf with a plump, rounded body. Its skin is a mottled gray
+  color, with hints of pink especially around its neck and cheeks. Its
+  eyes are dark and soulful, giving it an endearing expression. The calf
+  has a small, broad snout and tiny, rounded ears.**Pose:** The hippo is
+  sitting with its short legs tucked beneath its body. It's looking
+  directly at the camera with a slightly curious and passive expression.
+  **Texture:\*\* The hippo's skin appears smooth and moist, suggesting
+  it might be wet or freshly out of the water.\*Human
+  Hand:****Position:** The hand is placed gently under the hippo's chin
+  and neck, supporting its head. The fingers are slightly curved and not
+  gripping tightly, demonstrating a caring touch.**Texture:\*\* The skin
+  of the hand appears soft and
+  well-maintained.\*Background:****Setting:** The background is out of
+  focus, but it appears to be a rocky, possibly aquatic, environment.
+  The textures in the background are muted and do not detract from the
+  main subjects of the photo.**Date\*\*: There's a watermark saying
+  “Thailand 9/2024”, indicating the location and date of the
+  image.\*Mood/Tone:\*\*The image evokes a sense of gentleness and
+  tenderness. The close-up perspective and the gentle touch of the hand
+  create a very intimate and sweet scene.The calf's innocent expression
+  adds to the overall cuteness and warmth of the image.\*Overall
+  Impression:\*\*image captures a beautiful moment of interaction
+  between a human and a very young, vulnerable animal. The photograph
+  emphasizes the gentle nature of the interaction and the sheer
+  adorableness of the baby hippo, making it a very touching and
+  memorable picture.me know if you would like a description from another
+  perspective or have any other questions about the image!’}\], ‘role’:
+  ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.7025935932741327
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 259
-- candidates_token_count: 66
-- total_token_count: 325
+- prompt_token_count: 260
+- candidates_token_count: 472
+- total_token_count: 732
 - cached_content_token_count: 0
 
 </details>
@@ -641,24 +718,23 @@ look even cuter.
 chat('What direction is the hippo facing?')
 ```
 
-The hippopotamus is facing **towards the right**.
+The hippo is facing directly towards the camera.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘The hippopotamus is facing **towards
-  the right**. ’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ‘The hippo is facing directly towards
+  the camera.’}\], ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.06370497941970825
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 334
+- prompt_token_count: 742
 - candidates_token_count: 10
-- total_token_count: 344
+- total_token_count: 752
 - cached_content_token_count: 0
 
 </details>
@@ -667,26 +743,25 @@ The hippopotamus is facing **towards the right**.
 chat('What color is it?')
 ```
 
-The baby hippopotamus is a light greyish-brown color. It’s also a bit
-pink on its belly and around its eyes.
+The hippo is a mottled gray color, with hints of pink especially around
+its neck and cheeks.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: “The baby hippopotamus is a light
-  greyish-brown color. It’s also a bit pink on its belly and around its
-  eyes. ”}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ‘The hippo is a mottled gray color, with
+  hints of pink especially around its neck and cheeks.’}\], ‘role’:
+  ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.08235452175140381
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 353
-- candidates_token_count: 28
-- total_token_count: 381
+- prompt_token_count: 760
+- candidates_token_count: 20
+- total_token_count: 780
 - cached_content_token_count: 0
 
 </details>
@@ -699,7 +774,7 @@ with this kind of chat.
 chat.use
 ```
 
-    In: 946; Out: 104; Total: 1050
+    In: 1762; Out: 502; Total: 2264
 
 ## Other Media
 
@@ -720,37 +795,142 @@ chat = Chat(model)
 chat([pdf_fn, "In brief, what are the main ideas of this paper?"])
 ```
 
-    Uploading media...
+Certainly! Here’s a breakdown of the main ideas presented in the paper
+“Attention is All You Need”:
 
-This paper introduces the Transformer, a new neural network architecture
-for sequence transduction. It uses attention mechanisms to model
-dependencies between input and output, rather than recurrent or
-convolutional neural networks. The Transformer is significantly faster
-to train and achieves state-of-the-art results on machine translation
-tasks. The paper also shows that the Transformer generalizes well to
-other tasks, such as English constituency parsing.
+**Core Contribution: The Transformer Architecture**
+
+- **Rejection of Recurrence and Convolution:** The paper proposes a
+  novel neural network architecture called the “Transformer” that moves
+  away from traditional recurrent neural networks (RNNs) and
+  convolutional neural networks (CNNs). These are the common
+  architectures for tasks involving sequence data.
+- **Sole Reliance on Attention:** The Transformer relies solely on the
+  “attention” mechanism to capture relationships within input and output
+  sequences. This is the core novel idea and is in contrast to models
+  using attention *in addition to* RNNs or CNNs.
+- **Parallelizable:** By removing recurrence, the Transformer is highly
+  parallelizable, which allows for faster training, especially on GPUs.
+- **Attention-Based Encoder-Decoder:** The Transformer uses an
+  encoder-decoder architecture, like other sequence-to-sequence models,
+  but the encoder and decoder are based on self-attention mechanisms
+  rather than RNNs or CNNs.
+
+**Key Components of the Transformer:**
+
+- **Multi-Head Attention:** The Transformer uses multiple “attention
+  heads,” each learning different dependencies. This allows the model to
+  capture information from different representation sub-spaces.
+  - **Self-Attention:** Attention mechanism is applied on the same
+    sequence (e.g. input to input or output to output), to capture
+    relations within the sequence itself.
+  - **Encoder-Decoder Attention:** Attention mechanism is applied on two
+    sequences (encoder and decoder output) to align sequences between
+    the source and target.
+- **Scaled Dot-Product Attention:** A specific form of attention that
+  uses dot products to calculate the attention weights with a scaling
+  factor to stabilize the training.
+- **Position-wise Feed-Forward Networks:** Fully connected networks are
+  applied to each position separately after attention to add
+  non-linearity.
+- **Positional Encoding:** Since the Transformer doesn’t have inherent
+  recurrence or convolutions, positional encodings are added to the
+  input embeddings to encode the sequence order.
+
+**Experimental Results and Impact:**
+
+- **Superior Translation Quality:** The paper demonstrates the
+  effectiveness of the Transformer on machine translation tasks
+  (English-to-German and English-to-French). The models achieve
+  state-of-the-art results with significant BLEU score improvements over
+  existing models including RNN and CNN based approaches.
+- **Faster Training:** They show that the Transformer achieves those
+  state-of-the-art results with much less training time compared to
+  other architectures, showing the benefit of parallelization.
+- **Generalization to Other Tasks:** The Transformer is also shown to
+  work well on English constituency parsing, highlighting its ability to
+  handle other sequence-based problems.
+- **Interpretability:** Through attention visualizations, the paper also
+  suggests that the model learns to capture structural information in
+  the input, making it more interpretable than recurrent methods.
+
+**In Essence:**
+
+The paper argues for attention as a foundational building block for
+sequence processing, dispensing with the need for recurrence and
+convolutions. It introduces the Transformer, a model that leverages
+attention mechanisms to achieve both better performance and faster
+training, setting a new state-of-the-art baseline for many tasks such as
+machine translation.
+
+Let me know if you’d like any specific aspect clarified further!
+
 <details>
 
-- content: {‘parts’: \[{‘text’: ‘This paper introduces the Transformer,
-  a new neural network architecture for sequence transduction. It uses
-  attention mechanisms to model dependencies between input and output,
-  rather than recurrent or convolutional neural networks. The
-  Transformer is significantly faster to train and achieves
-  state-of-the-art results on machine translation tasks. The paper also
-  shows that the Transformer generalizes well to other tasks, such as
-  English constituency parsing.’}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ’Certainly! Here's a breakdown of the
+  main ideas presented in the paper “Attention is All You Need”:\*Core
+  Contribution: The Transformer Architecture****Rejection of Recurrence
+  and Convolution:** The paper proposes a novel neural network
+  architecture called the “Transformer” that moves away from traditional
+  recurrent neural networks (RNNs) and convolutional neural networks
+  (CNNs). These are the common architectures for tasks involving
+  sequence data.**Sole Reliance on Attention:** The Transformer relies
+  solely on the “attention” mechanism to capture relationships within
+  input and output sequences. This is the core novel idea and is in
+  contrast to models using attention *in addition to* RNNs or
+  CNNs.**Parallelizable:** By removing recurrence, the Transformer is
+  highly parallelizable, which allows for faster training, especially on
+  GPUs.**Attention-Based Encoder-Decoder:\*\* The Transformer uses an
+  encoder-decoder architecture, like other sequence-to-sequence models,
+  but the encoder and decoder are based on self-attention mechanisms
+  rather than RNNs or CNNs.\*Key Components of the
+  Transformer:****Multi-Head Attention:** The Transformer uses multiple
+  “attention heads,” each learning different dependencies. This allows
+  the model to capture information from different representation
+  sub-spaces.**Self-Attention:** Attention mechanism is applied on the
+  same sequence (e.g. input to input or output to output), to capture
+  relations within the sequence itself.**Encoder-Decoder Attention:**
+  Attention mechanism is applied on two sequences (encoder and decoder
+  output) to align sequences between the source and target.**Scaled
+  Dot-Product Attention:** A specific form of attention that uses dot
+  products to calculate the attention weights with a scaling factor to
+  stabilize the training.**Position-wise Feed-Forward Networks:** Fully
+  connected networks are applied to each position separately after
+  attention to add non-linearity.**Positional Encoding:\*\* Since the
+  Transformer doesn't have inherent recurrence or convolutions,
+  positional encodings are added to the input embeddings to encode the
+  sequence order.\*Experimental Results and Impact:****Superior
+  Translation Quality:** The paper demonstrates the effectiveness of the
+  Transformer on machine translation tasks (English-to-German and
+  English-to-French). The models achieve state-of-the-art results with
+  significant BLEU score improvements over existing models including RNN
+  and CNN based approaches.**Faster Training:** They show that the
+  Transformer achieves those state-of-the-art results with much less
+  training time compared to other architectures, showing the benefit of
+  parallelization.**Generalization to Other Tasks:** The Transformer is
+  also shown to work well on English constituency parsing, highlighting
+  its ability to handle other sequence-based
+  problems.**Interpretability:\*\* Through attention visualizations, the
+  paper also suggests that the model learns to capture structural
+  information in the input, making it more interpretable than recurrent
+  methods.\*In Essence:\*\*paper argues for attention as a foundational
+  building block for sequence processing, dispensing with the need for
+  recurrence and convolutions. It introduces the Transformer, a model
+  that leverages attention mechanisms to achieve both better performance
+  and faster training, setting a new state-of-the-art baseline for many
+  tasks such as machine translation.me know if you'd like any specific
+  aspect clarified further!’}\], ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -0.7809832342739763
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 14923
-- candidates_token_count: 77
-- total_token_count: 15000
+- prompt_token_count: 14943
+- candidates_token_count: 696
+- total_token_count: 15639
 - cached_content_token_count: 0
 
 </details>
@@ -769,80 +949,185 @@ pr = "This is a podcast about the same paper. What important details from the pa
 chat([audio_fn, pr])
 ```
 
-    Uploading media...
+Okay, let’s analyze what details were missing from the podcast
+discussion of “Attention is All You Need”. Here are some of the key
+aspects not fully covered:
 
-The podcast doesn’t mention several important aspects of the paper,
-including:
+**1. Deeper Dive into the Math and Mechanics:**
 
-- **Specific details about the architecture of the Transformer.** While
-  the podcast discusses the core idea of attention mechanisms and how
-  they differ from previous models, it doesn’t explain the specific
-  details of the Transformer’s architecture, such as the number of
-  layers, the dimension of the embeddings, or the specific type of
-  attention mechanism used.
-- **Empirical results for other tasks.** The podcast focuses on machine
-  translation results, but the paper also evaluates the Transformer’s
-  performance on English constituency parsing.
-- **Limitations and future directions.** The podcast mentions the
-  authors’ acknowledgement of the quadratic cost of attention for long
-  sequences and their suggestion to explore restricted attention
-  mechanisms. However, it doesn’t delve deeper into the potential
-  limitations of the Transformer and the authors’ specific plans for
-  future research.
-- **The significance of the Transformer for the field of natural
-  language processing.** The podcast mentions the potential for faster
-  training and better results across NLP tasks, but it doesn’t elaborate
-  on the broader impact of the Transformer on the field, such as its
-  ability to handle different modalities and the shift from recurrent to
-  attention-based models.
-- **Visualizations of attention.** The podcast doesn’t mention the
-  paper’s inclusion of visualizations of the attention mechanism, which
-  provide insights into how the model learns to capture syntactic and
-  semantic relationships between words.
+- **Detailed Attention Formula:** The podcast mentions “scaled dot
+  product attention” but doesn’t delve into the actual mathematical
+  formula used to calculate the attention weights:
+  - `Attention(Q, K, V) = softmax((QK^T) / sqrt(d_k)) * V` (where
+    Q=query, K=key, V=value, and d_k is the dimension of the key)
+- **Query, Key, Value:** While mentioned, the exact nature of how Query,
+  Key and Values are generated from input is never made explicit. How
+  are these generated by linear transformations is an essential aspect.
+- **The role of the Mask:** The mask in decoder’s self-attention is also
+  not covered in depth. Masking is essential for the auto-regressive
+  nature of the output sequence.
+- **Positional Encoding Equations:** The podcast mentioned positional
+  encoding but not the specific sine and cosine formulas and their
+  purpose which are key to how the model retains position information.
+  - `PE(pos, 2i) = sin(pos/10000^(2i/d_model))`
+  - `PE(pos, 2i+1) = cos(pos/10000^(2i/d_model))`
+- **Detailed explanation of how d_model, d_k, d_v and head dimension
+  relate.** This is essential to understanding the parameter counts in
+  the model.
 
-Overall, the podcast provides a high-level overview of the paper, but it
-doesn’t go into the depth of detail that the paper itself provides.
+**2. Architectural Details and Hyperparameters:**
+
+- **Number of Layers and Model Dimensions:** The paper uses 6 layers
+  both on the encoder and decoder side in their basic and large models.
+  The exact dimensionality of the model itself is also crucial to
+  understanding its capacity. The podcast only mentions that they are
+  stacked.
+- **Feed Forward Layer Details:** The point-wise feed-forward network’s
+  dimensionality is essential for model performance. The podcast does
+  not go into depth about it and the dimensionality being used d_ff=2048
+  is key.
+- **Dropout and Label Smoothing:** They are mentioned as a type of
+  regularization, but the specific rates of 0.1 for the base model are
+  never mentioned nor is the label smoothing rate of 0.1. These details
+  are important for reproducibility and performance.
+- **Optimization Details:** There is also no mention of the Adam
+  Optimizer’s Beta parameters of β₁ = 0.9, β2 = 0.98 and € = 10-9. The
+  paper introduces a specific learning rate decay that is not discussed
+  by name.
+
+**3. Analysis and Experiments:**
+
+- **Comparison to other attention-based models:** The paper explains its
+  motivations in relation to other attention-based models (such as
+  memory networks).
+- **Model variation experiments:** The paper contains detailed
+  experiments varying attention head number and dimensionality,
+  different position encoding options, and impact of dropout and size
+  that are not discussed.
+- **Computational Complexity:** The paper explains detailed complexity
+  analysis for different layer types (Recurrent, Convolutional etc) and
+  their implications for training performance, which is only vaguely
+  discussed in the podcast.
+- **Attention Interpretations:** The paper visually highlights patterns
+  in attention weights which provide intuition on what the model is
+  learning, which is not really discussed by name. This allows insights
+  into how the model handles long-distance dependencies.
+
+**4. Technical Implementation:**
+
+- **Byte-pair encoding:** While mentioned, this subword approach and its
+  impact on vocabulary size and performance is never fully discussed.
+- **Batching:** Batching of training examples using the total sequence
+  length is discussed, but the method of how they are batched in terms
+  of approximately 25000 tokens is not explicit in the podcast.
+- **Ensemble method:** Details about how checkpointing and averaging are
+  used to generate model predictions is missing.
+
+**5. Broader Context and Future Work**
+
+- **Why sinusoidal encodings:** The paper specifically states that they
+  hypothesized that using fixed functions for position encoding should
+  be better than learning them, this explanation is not given in the
+  podcast.
+- **Future Directions:** The paper explicitly lays out plans to extend
+  the transformer to handle larger inputs using locality restrictions
+  and applying them to other modalities, which was alluded to, but not
+  explored with the same depth.
+
+**In Summary:**
+
+The podcast provides a good overview of the high-level ideas of the
+paper, but it omits several crucial technical details, mathematical
+equations, model architecture configurations, and experimental analysis.
+These omissions are quite critical for fully grasping the novelty and
+impact of the paper’s findings, and for anyone interested in
+implementing or extending the model. The podcast lacks the quantitative
+analysis and model variations that the paper presents.
 
 <details>
 
-- content: {‘parts’: \[{‘text’: “The podcast doesn’t mention several
-  important aspects of the paper, including: **Specific details about
-  the architecture of the Transformer.** While the podcast discusses the
-  core idea of attention mechanisms and how they differ from previous
-  models, it doesn’t explain the specific details of the Transformer’s
-  architecture, such as the number of layers, the dimension of the
-  embeddings, or the specific type of attention mechanism used.
-  **Empirical results for other tasks.** The podcast focuses on machine
-  translation results, but the paper also evaluates the Transformer’s
-  performance on English constituency parsing. **Limitations and future
-  directions.** The podcast mentions the authors’ acknowledgement of the
-  quadratic cost of attention for long sequences and their suggestion to
-  explore restricted attention mechanisms. However, it doesn’t delve
-  deeper into the potential limitations of the Transformer and the
-  authors’ specific plans for future research. **The significance of the
-  Transformer for the field of natural language processing.** The
-  podcast mentions the potential for faster training and better results
-  across NLP tasks, but it doesn’t elaborate on the broader impact of
-  the Transformer on the field, such as its ability to handle different
-  modalities and the shift from recurrent to attention-based models.
-  **Visualizations of attention.** The podcast doesn’t mention the
-  paper’s inclusion of visualizations of the attention mechanism, which
-  provide insights into how the model learns to capture syntactic and
-  semantic relationships between words. , the podcast provides a
-  high-level overview of the paper, but it doesn’t go into the depth of
-  detail that the paper itself provides.”}\], ‘role’: ‘model’}
+- content: {‘parts’: \[{‘text’: ’Okay, let's analyze what details were
+  missing from the podcast discussion of “Attention is All You Need”.
+  Here are some of the key aspects not fully covered:\*1. Deeper Dive
+  into the Math and Mechanics:****Detailed Attention Formula:** The
+  podcast mentions “scaled dot product attention” but doesn't delve into
+  the actual mathematical formula used to calculate the attention
+  weights:`Attention(Q, K, V) = softmax((QK^T) / sqrt(d_k)) * V` (where
+  Q=query, K=key, V=value, and d_k is the dimension of the key)**Query,
+  Key, Value:** While mentioned, the exact nature of how Query, Key and
+  Values are generated from input is never made explicit. How are these
+  generated by linear transformations is an essential aspect.**The role
+  of the Mask:** The mask in decoder's self-attention is also not
+  covered in depth. Masking is essential for the auto-regressive nature
+  of the output sequence.**Positional Encoding Equations:** The podcast
+  mentioned positional encoding but not the specific sine and cosine
+  formulas and their purpose which are key to how the model retains
+  position
+  information.`PE(pos, 2i) = sin(pos/10000^(2i/d_model))``PE(pos, 2i+1) = cos(pos/10000^(2i/d_model))`**Detailed
+  explanation of how d_model, d_k, d_v and head dimension relate.\*\*
+  This is essential to understanding the parameter counts in the
+  model.\*2. Architectural Details and Hyperparameters:****Number of
+  Layers and Model Dimensions:** The paper uses 6 layers both on the
+  encoder and decoder side in their basic and large models. The exact
+  dimensionality of the model itself is also crucial to understanding
+  its capacity. The podcast only mentions that they are stacked.**Feed
+  Forward Layer Details:** The point-wise feed-forward network's
+  dimensionality is essential for model performance. The podcast does
+  not go into depth about it and the dimensionality being used d_ff=2048
+  is key.**Dropout and Label Smoothing:** They are mentioned as a type
+  of regularization, but the specific rates of 0.1 for the base model
+  are never mentioned nor is the label smoothing rate of 0.1. These
+  details are important for reproducibility and
+  performance.**Optimization Details:\*\* There is also no mention of
+  the Adam Optimizer's Beta parameters of β₁ = 0.9, β2 = 0.98 and € =
+  10-9. The paper introduces a specific learning rate decay that is not
+  discussed by name.\*3. Analysis and Experiments:****Comparison to
+  other attention-based models:** The paper explains its motivations in
+  relation to other attention-based models (such as memory
+  networks).**Model variation experiments:** The paper contains detailed
+  experiments varying attention head number and dimensionality,
+  different position encoding options, and impact of dropout and size
+  that are not discussed.**Computational Complexity:** The paper
+  explains detailed complexity analysis for different layer types
+  (Recurrent, Convolutional etc) and their implications for training
+  performance, which is only vaguely discussed in the
+  podcast.**Attention Interpretations:\*\* The paper visually highlights
+  patterns in attention weights which provide intuition on what the
+  model is learning, which is not really discussed by name. This allows
+  insights into how the model handles long-distance dependencies.\*4.
+  Technical Implementation:****Byte-pair encoding:** While mentioned,
+  this subword approach and its impact on vocabulary size and
+  performance is never fully discussed.**Batching:** Batching of
+  training examples using the total sequence length is discussed, but
+  the method of how they are batched in terms of approximately 25000
+  tokens is not explicit in the podcast.**Ensemble method:\*\* Details
+  about how checkpointing and averaging are used to generate model
+  predictions is missing.\*5. Broader Context and Future Work****Why
+  sinusoidal encodings:** The paper specifically states that they
+  hypothesized that using fixed functions for position encoding should
+  be better than learning them, this explanation is not given in the
+  podcast.**Future Directions:\*\* The paper explicitly lays out plans
+  to extend the transformer to handle larger inputs using locality
+  restrictions and applying them to other modalities, which was alluded
+  to, but not explored with the same depth.\*In Summary:\*\*podcast
+  provides a good overview of the high-level ideas of the paper, but it
+  omits several crucial technical details, mathematical equations, model
+  architecture configurations, and experimental analysis. These
+  omissions are quite critical for fully grasping the novelty and impact
+  of the paper's findings, and for anyone interested in implementing or
+  extending the model. The podcast lacks the quantitative analysis and
+  model variations that the paper presents.’}\], ‘role’: ‘model’}
 - finish_reason: 1
-- index: 0
-- safety_ratings: \[{‘category’: 9, ‘probability’: 1, ‘blocked’: False},
-  {‘category’: 8, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
-  ‘probability’: 1, ‘blocked’: False}, {‘category’: 10, ‘probability’:
-  1, ‘blocked’: False}\]
+- safety_ratings: \[{‘category’: 8, ‘probability’: 1, ‘blocked’: False},
+  {‘category’: 10, ‘probability’: 1, ‘blocked’: False}, {‘category’: 7,
+  ‘probability’: 1, ‘blocked’: False}, {‘category’: 9, ‘probability’: 1,
+  ‘blocked’: False}\]
+- avg_logprobs: -1.2337962527821222
 - token_count: 0
 - grounding_attributions: \[\]
-- avg_logprobs: 0.0
-- prompt_token_count: 22863
-- candidates_token_count: 320
-- total_token_count: 23183
+- prompt_token_count: 23502
+- candidates_token_count: 1039
+- total_token_count: 24541
 - cached_content_token_count: 0
 
 </details>
@@ -854,7 +1139,7 @@ really fast!
 chat.use
 ```
 
-    In: 37786; Out: 397; Total: 38183
+    In: 38445; Out: 1735; Total: 40180
 
 We can also use structured outputs with multi-modal data:
 
@@ -875,8 +1160,6 @@ pr = "Extract the necessary information from the audio."
 audio_md = cli.structured(mk_msgs([[audio_fn, pr]]), tools=[AudioMetadata])[0]
 ```
 
-    Uploading media...
-
 ``` python
 print(f'Number of speakers: {audio_md.n_speakers}')
 print(f'Topic: {audio_md.topic}')
@@ -887,14 +1170,14 @@ print(f'Transcript: {transcript}')
 
     Number of speakers: 2.0
     Topic: Machine Learning and NLP
-    Summary: This podcast dives into the paper \"Attention is All You Need\" by Vaswani et al., which introduces a new model architecture called the Transformer, based entirely on attention mechanisms, eliminating recurrence and convolutions used in previous models. This paper addresses limitations in previous models by proposing a new architecture which utilizes a stack of identical layers for both encoder and decoder. The authors highlight the model's capability to efficiently handle long-range dependencies in language, as well as its scalability and efficiency in training. The discussion also touches on the broader implications of this research, opening up new possibilities for sequence transduction tasks in the field of NLP.
-    Transcript: 00:00 Welcome to our podcast where we dive
-    -00:01 into groundbreaking research papers.
-    -00:02 Today, we're discussing Attention is all
-    -00:03 you need by Vaswani et al.
-    -00:04 Joining us is an expert in machine
-    -00:05 learning. Welcome.
-    -00:06 Thanks for having me. I'm
-    -00:07 excited to discuss this revolutionary
-    -00:08 paper. Let's start with the core idea.
-    -00:09 What's the main thrust of this research?
+    Summary: This podcast discusses the 'Attention is All You Need' research paper by Vaswani et al., focusing on the Transformer model's architecture, its use of attention mechanisms, and its performance on translation tasks.
+    Transcript: Welcome to our podcast, where we dive into groundbreaking research papers. Today, we're discussing 'Attention is all you need' by Vaswani at all. Joining us is an expert in machine learning. Welcome.
+    -Thanks for having me. I'm excited to discuss this revolutionary paper.
+    -Let's start with the core idea. What's the main thrust of this research?
+    -The paper introduces a new model architecture called the Transformer, which is based entirely on attention mechanisms. It completely does away with recurrence and convolutions, which were staples in previous sequence transduction models.
+    -That sounds like a significant departure from previous approaches. What motivated this radical change?
+    -The main motivation was to address limitations in previous models, particularly the sequential nature of processing in RNNs. This sequential computation hindered parallelization and made it challenging to learn long-range dependencies in sequences.
+    -Could you explain what attention mechanisms are, and why they're so crucial in this model?
+    -Certainly. Attention allows the model to focus on different parts of the input sequence when producing each part of the output. In the Transformer, they use a specific type called scaled dot product attention and extend it to multi-head attention, which lets the model jointly attend to information from different representation subspaces.
+    -Fascinating. How does the Transformer's architecture differ from previous models?
+    -The Transformer uses a stack of identical layers for both the encoder and decoder. Each layer has two main components, a multi-head self-attention mechanism, and a position-wise fully connected feed-forward network. This structure allows for more parallelization and efficient computation.

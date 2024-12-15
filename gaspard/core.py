@@ -30,7 +30,14 @@ UsageMetadata = GCR.UsageMetadata
 empty = inspect.Parameter.empty
 
 # %% ../00_core.ipynb
-models = 'gemini-1.5-pro-exp-0827', 'gemini-1.5-flash-exp-0827','gemini-1.5-pro','gemini-1.5-flash'
+models = ('gemini-2.0-flash-exp',
+          'gemini-exp-1206',
+          'learnlm-1.5-pro-experimental',
+          'gemini-exp-1121',
+          'gemini-1.5-pro',
+          'gemini-1.5-flash',
+          'gemini-1.5-flash-8b'
+         )
 
 # %% ../00_core.ipynb
 def find_block(r:abc.Mapping, # The message to look in
@@ -145,10 +152,13 @@ def __call__(self:Client,
 
 # %% ../00_core.ipynb
 pricing = {  # model type: $ / million tokens (input, output, cache, input_long, output_long, cache_long)
+    'gemini-2.0-flash-exp': (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     'gemini-1.5-pro': (1.25, 5.0, 0.3125, 2.50, 10.0, 0.625),
-    'gemini-1.5-pro-exp-0827': (1.25, 5.0, 0.3125, 2.50, 10.0, 0.625),
     'gemini-1.5-flash': (0.075, 0.30, 0.01875, 0.15, 0.60, 0.0375),
-    'gemini-1.5-flash-exp-0827': (0.075, 0.30, 0.01875, 0.15, 0.60, 0.0375)
+    'gemini-exp-1206': (1.25, 5.0, 0.3125, 2.50, 10.0, 0.625),
+    'gemini-exp-1121': (1.25, 5.0, 0.3125, 2.50, 10.0, 0.625),
+    'learnlm-1.5-pro-experimental': (1.25, 5.0, 0.3125, 2.50, 10.0, 0.625)
+    
 }
 
 # %% ../00_core.ipynb
@@ -375,7 +385,11 @@ def mk_msg(content, role='user', **kw):
     if isinstance(content, GenerateContentResponse): role,content = 'model',contents(content)
     if isinstance(content, dict): role,content = content['role'],content['parts']
     if not isinstance(content, list): content=[content]
-    if role == 'user': content = [_mk_content(o) for o in content] if content else ''
+    if role == 'user': 
+        if content: ## Gemini errors if the message contains only media and no text
+            if len(content) == 1 and not isinstance(content[0], str): content.append(' ')
+            content = [_mk_content(o) for o in content]
+        else: content = ''
     return dict(role=role, parts=content, **kw)
 
 # %% ../00_core.ipynb
